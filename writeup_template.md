@@ -1,7 +1,4 @@
-##Writeup Template
-###You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
-
----
+## Project Writeup
 
 **Advanced Lane Finding Project**
 
@@ -32,14 +29,14 @@ The goals / steps of this project are the following:
 ---
 ###Writeup / README
 
-####1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  [Here](https://github.com/udacity/CarND-Advanced-Lane-Lines/blob/master/writeup_template.md) is a template writeup for this project you can use as a guide and a starting point.  
+####1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  
 
 You're reading it!
 ###Camera Calibration
 
 ####1. Briefly state how you computed the camera matrix and distortion coefficients. Provide an example of a distortion corrected calibration image.
 
-The code for this step is contained in the first code cell of the IPython notebook located in "./examples/example.ipynb" (or in lines # through # of the file called `some_file.py`).  
+The code for this step is contained in the the file called `calibrate.py`.  
 
 I start by preparing "object points", which will be the (x, y, z) coordinates of the chessboard corners in the world. Here I am assuming the chessboard is fixed on the (x, y) plane at z=0, such that the object points are the same for each calibration image.  Thus, `objp` is just a replicated array of coordinates, and `objpoints` will be appended with a copy of it every time I successfully detect all chessboard corners in a test image.  `imgpoints` will be appended with the (x, y) pixel position of each of the corners in the image plane with each successful chessboard detection.  
 
@@ -53,53 +50,55 @@ I then used the output `objpoints` and `imgpoints` to compute the camera calibra
 To demonstrate this step, I will describe how I apply the distortion correction to one of the test images like this one:
 ![alt text][image2]
 ####2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
-I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in `another_file.py`).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
+The code for this step is contained in the the file called `thresholding.py`
+I use the combination of the following for thresholding-
+* Color space - Saturation (S) thresholding in HLS color space and Red (R) thresholding in RGB color space
+* Sobel gradient thesholding in X direction
+Then I combined the results of the three to generate a more robust thresholding.
 
 ![alt text][image3]
 
 ####3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
-
-The code for my perspective transform includes a function called `warper()`, which appears in lines 1 through 8 in the file `example.py` (output_images/examples/example.py) (or, for example, in the 3rd code cell of the IPython notebook).  The `warper()` function takes as inputs an image (`img`), as well as source (`src`) and destination (`dst`) points.  I chose the hardcode the source and destination points in the following manner:
-
-```
-src = np.float32(
-    [[(img_size[0] / 2) - 55, img_size[1] / 2 + 100],
-    [((img_size[0] / 6) - 10), img_size[1]],
-    [(img_size[0] * 5 / 6) + 60, img_size[1]],
-    [(img_size[0] / 2 + 55), img_size[1] / 2 + 100]])
-dst = np.float32(
-    [[(img_size[0] / 4), 0],
-    [(img_size[0] / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), 0]])
+The code for this step is contained in the the file called `transform.py`
+The code for my perspective transform includes a function called `transform_to_top_down()`, The `transform_to_top_down()` function takes as inputs an image, and using pre-defined source and destination points, performs the perspective transform.  I chose the hardcode the source and destination points in the following manner:
 
 ```
-This resulted in the following source and destination points:
+default_src_points = np.float32([[585.714, 456.34],
+                                 [699.041, 456.34],
+                                 [1029.17, 667.617],
+                                 [290.454, 667.617]])
 
-| Source        | Destination   | 
-|:-------------:|:-------------:| 
-| 585, 460      | 320, 0        | 
-| 203, 720      | 320, 720      |
-| 1127, 720     | 960, 720      |
-| 695, 460      | 960, 0        |
+default_dst_points  = np.float32([[300, 70],
+                                  [1000, 70],
+                                  [1000, 600],
+                                  [300, 600]])
 
-I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
+```
+I verified that my perspective transform was working as expected by drawing the source and destination points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
 
 ![alt text][image4]
 
 ####4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
-
-Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
+The code for this step is contained in the the file called `detection.py`
+Lane line detection is done using the sliding windows technique explained in the course. The sum of all the line points detect in the thresholding phase is taken for the bottom half of the image. This let's us detect where the two lane lines are approximately. Using this approximation, we then find all the nonzero values inside a window, and store those points as points for the lane line. We slide the window up, and repeat finding nonzero values. When the sliding window reaches the top of the image, we fit a parabola to the points that were detected. This polynomial can be used to calculate the lane line values at any point.
 
 ![alt text][image5]
 
 ####5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
+The code for this step is contained in the the file called `lane.py`
+fit = np.polyfit(xs, ys) # using the xs and ys found during detection
+p   = np.poly1d(fit)     # polynomial helper function
+p1  = np.polyder(p)      # first derivative of out polynomial
+p2  = np.polyder(p, 2)   # second derivative of our polynomial
 
-I did this in lines # through # in my code in `my_other_file.py`
+y is the point at which you'd like to find the curvature
+((1 + (p1(y)**2))**1.5) / np.absolute(p2(y))
+
+Assuming the camera is mounted in the center of the car, the distance to the center of the lane can be calculated by find the difference from the center of the lanes, to the center of the image.
 
 ####6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
-
-I implemented this step in lines # through # in my code in `yet_another_file.py` in the function `map_lane()`.  Here is an example of my result on a test image:
+The code for this step is contained in the the file called `pipeline.py`
+Here is an example of my result on a test image:
 
 ![alt text][image6]
 
@@ -108,6 +107,7 @@ I implemented this step in lines # through # in my code in `yet_another_file.py`
 ###Pipeline (video)
 
 ####1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
+The code for this step is contained in the the file called `convert_video.py`
 
 Here's a [link to my video result](./project_video.mp4)
 
@@ -117,5 +117,9 @@ Here's a [link to my video result](./project_video.mp4)
 
 ####1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+Challenges:
+Identifying features and thresholds.
+
+Recommendations:
+The algorithm is dependent on the features chosen and the thresholds selected. This makes it prone to error if the conditions on the road differ vastly from the data used for calculations. Better approach would be to use Deep Learning for identifying the lanes.
 
