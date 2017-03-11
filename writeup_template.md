@@ -21,7 +21,7 @@ The goals / steps of this project are the following:
 [image4]: ./examples/warped_straight_lines.png "Warp Example"
 [image5]: ./examples/color_fit_lines.png "Fit Visual"
 [image6]: ./examples/example_output.png "Output"
-[video1]: ./project_video.mp4 "Video"
+[video1]: ./output_images/project_video.mp4 "Video"
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/571/view) Points
 ###Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
@@ -110,7 +110,7 @@ Here is an example of my result on a test image:
 ####1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
 The code for this step is contained in the the file called `convert_video.py`
 
-Here's a [link to my video result](./project_video.mp4)
+Here's a [link to my video result][Video]
 
 ---
 
